@@ -25,72 +25,8 @@ module.exports = function (json) {
         GenerateClassModel(_class);
     });
 
-    AddClassesToDiagram();
-    AddAssociationsToDiagram();
-
     return xmlElement.end({ pretty: true });
 }
-
-
-function AddClassesToDiagram() {
-    classDiagramElement = xmlElement.ele('Diagrams')
-        .ele('ClassDiagram')
-        .att('AutoFitShapesSize', 'true');
-
-    shapesElement = classDiagramElement.ele('Shapes');
-
-    classes.forEach(function (_class) {
-        var _classElement = shapesElement.ele('Class')
-            .att('Id', _class.Idref)
-            .att('MetaModelElement', _class.Id)
-            .att('Model', _class.Id)
-            .att('Name', _class.name);
-    });
-}
-
-
-
-
-function AddAssociationsToDiagram() {
-    var connectorsElement = classDiagramElement.ele('Connectors');
-
-    modelsElement.children.forEach(function (child) {
-        if (child.name != "Association") return;
-
-        var associationId = child.attributes.Id.value;
-        var class1Id = child.attributes.EndRelationshipFromMetaModelElement.value;
-        var class2Id = child.attributes.EndRelationshipToMetaModelElement.value;
-
-        var classShape1Id;
-        var classShape2Id;
-
-        shapesElement.children.forEach(function (_class) {
-            if (_class.name != "Class") return;
-
-            var model = _class.attributes.Model.value;
-            if (model == class1Id) {
-                classShape1Id = _class.attributes.Id.value;
-            } else if (model == class2Id) {
-                classShape2Id = _class.attributes.Id.value;
-            }
-        });
-
-        var idref;
-        child.children.forEach(function (_child) {
-            if (_child.name != "MasterView") return;
-
-            idref = _child.children[0].attributes.Idref.value;
-        });
-
-        connectorsElement.ele('Association')
-            .att('Id', idref)
-            .att('From', classShape1Id)
-            .att('To', classShape2Id)
-            .att('Element', associationId)
-            .att('Model', associationId);
-    });
-}
-
 
 
 function GenerateClassModel(_class) {
@@ -100,59 +36,12 @@ function GenerateClassModel(_class) {
 
     GenerateAttributeOrMethods(_class, _classElement);
 
-    GenerateAssociations(_class);
-
     var masterView = _classElement.ele('MasterView')
         .ele('Class')
         .att('Idref', _class.Idref)
         .att('Name', _class.name);
 }
 
-
-function GenerateAssociations(_class) {
-    if (!_class.children) return;
-
-    _class.children.forEach(function (prop) {
-        if (prop.kindString != "Property") return;
-        if(!prop.type || !prop.type.id) return;
-
-        var otherClass = GetClassById(prop.type.id);
-
-        var association = modelsElement
-            .ele('Association')
-            .att('EndRelationshipFromMetaModelElement', _class.Id)
-            .att('EndRelationshipToMetaModelElement', otherClass.Id)
-            .att('Id', GenerateId())
-
-        association
-            .ele('FromEnd')
-            .ele('AssociationEnd', {
-                Id: GenerateId(),
-                EndModelElement: _class.Id
-            })
-            .ele('Type')
-            .ele('Class')
-                .att('Idref', _class.Id)
-                .att('Name', _class.name);
-
-        association
-            .ele('ToEnd')
-            .ele('AssociationEnd', {
-                Id: GenerateId(),
-                EndModelElement: otherClass.Id
-            })
-            .ele('Type')
-            .ele('Class')
-                .att('Idref', otherClass.Id)
-                .att('Name', otherClass.name);
-
-        association
-            .ele('MasterView')
-            .ele('Association')
-            .att('Idref', GenerateId());
-
-    });
-}
 
 function LoadClasses(json) {
     classes = [];
@@ -221,16 +110,20 @@ function GenerateAttributeOrMethods(_class, _classElement) {
         if (kind == "Property") {
             var attr = methodOrAttribute;
 
-            // don't create attributes for references which have an id, an association will be drawn later
-            // classes that are not in the typedoc don't have an id
-            if (attr.type && attr.type.type == "reference") {
-                if (attr.type.id) return;
-            }
-
-            modelChildren.ele('Attribute')
+            var attrElement = modelChildren.ele('Attribute')
             .att('Id', attr.Id)
             .att('Name', attr.name)
-            .att('Type', GetTypeName(attr.type));
+
+            if (attr.type && attr.type.type == "reference" && attr.type.id) {
+                var classReference = GetClassById(attr.type.id);
+                attrElement.ele('Type')
+                    .ele('Class')
+                    .att('Idref', classReference.Id)
+                    .att('Name', classReference.name)
+            }
+            else {
+                attrElement.att('Type', GetTypeName(type));
+            }
         }
     });
 }
