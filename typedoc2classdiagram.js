@@ -3,6 +3,7 @@ var randomstring = require("randomstring");
 
 var xmlElement;
 var modelsElement;
+var shapesElement;
 var classDiagramElement;
 var classes = [];
 
@@ -16,14 +17,13 @@ module.exports = function (json) {
         .ele('LogicalView')
 
 
-    GetClasses(json);
+    LoadClasses(json);
+
     modelsElement = xmlElement.ele('Models');
 
-    for (var i = 0; i < classes.length; i++) {
-        var _class = classes[i];
-
+    classes.forEach(function (_class) {
         GenerateClassModel(_class);
-    }
+    });
 
     AddClassesToDiagram();
     AddAssociationsToDiagram();
@@ -37,24 +37,58 @@ function AddClassesToDiagram() {
         .ele('ClassDiagram')
         .att('AutoFitShapesSize', 'true');
 
-    var shapes = classDiagramElement.ele('Shapes');
+    shapesElement = classDiagramElement.ele('Shapes');
 
-    for (var i = 0; i < classes.length; i++) {
-        var _class = classes[i];
-
-        var _classElement = Shapes.ele('Class')
+    classes.forEach(function (_class) {
+        var _classElement = shapesElement.ele('Class')
             .att('Id', _class.Idref)
             .att('MetaModelElement', _class.Id)
             .att('Model', _class.Id)
             .att('Name', _class.name);
-    }
+    });
 }
 
 
 
 
 function AddAssociationsToDiagram() {
+    var connectorsElement = classDiagramElement.ele('Connectors');
 
+    modelsElement.children.forEach(function (child) {
+        if (child.name != "Association") return;
+
+        var associationId = child.attributes.Id.value;
+        var class1Id = child.attributes.EndRelationshipFromMetaModelElement.value;
+        var class2Id = child.attributes.EndRelationshipToMetaModelElement.value;
+
+        var classShape1Id;
+        var classShape2Id;
+
+        shapesElement.children.forEach(function (_class) {
+            if (_class.name != "Class") return;
+
+            var model = _class.attributes.Model.value;
+            if (model == class1Id) {
+                classShape1Id = _class.attributes.Id.value;
+            } else if (model == class2Id) {
+                classShape2Id = _class.attributes.Id.value;
+            }
+        });
+
+        var idref;
+        child.children.forEach(function (_child) {
+            if (_child.name != "MasterView") return;
+
+            idref = _child.children[0].attributes.Idref.value;
+        });
+
+        connectorsElement.ele('Association')
+            .att('Id', idref)
+            .att('From', classShape1Id)
+            .att('To', classShape2Id)
+            .att('Element', associationId)
+            .att('Model', associationId);
+    });
 }
 
 
@@ -78,12 +112,10 @@ function GenerateClassModel(_class) {
 function GenerateAssociations(_class) {
     if (!_class.children) return;
 
-    for (var x = 0; x < _class.children.length; x++) {
-        var prop = _class.children[x];
-        if (prop.kindString != "Property") continue;
-        if(!prop.type || !prop.type.id) continue;
+    _class.children.forEach(function (prop) {
+        if (prop.kindString != "Property") return;
+        if(!prop.type || !prop.type.id) return;
 
-        console.log(prop.type.id);
         var otherClass = GetClassById(prop.type.id);
 
         var association = modelsElement
@@ -104,7 +136,7 @@ function GenerateAssociations(_class) {
                 .att('Name', _class.name);
 
         association
-            .ele('FromEnd')
+            .ele('ToEnd')
             .ele('AssociationEnd', {
                 Id: GenerateId(),
                 EndModelElement: otherClass.Id
@@ -114,39 +146,39 @@ function GenerateAssociations(_class) {
                 .att('Idref', otherClass.Id)
                 .att('Name', otherClass.name);
 
-    }
+        association
+            .ele('MasterView')
+            .ele('Association')
+            .att('Idref', GenerateId());
+
+    });
 }
 
-function GetClasses(json) {
+function LoadClasses(json) {
     classes = [];
 
-    for (var i = 0; i < json.children.length; i++) {
-        var file = json.children[i];
-        if (!file.children) continue;
+    json.children.forEach(function (file) {
+        if(!file.children) return;
 
-        for (var l = 0; l < file.children.length; l++) {
-            var classObj = file.children[l];
-            if (classObj.kindString != "Class") continue;
+        file.children.forEach(function (classObj) {
+            if (classObj.kindString != "Class") return;
 
             classObj.Id = GenerateId();
             classObj.Idref = GenerateId();
 
-            if (classObj.children) {
-                for (var x = 0; x < classObj.children.length; x++) {
-                    var child = classObj.children[x];
-                    child.Id = GenerateId();
-                }
-            }
-
             classes.push(classObj);
-        }
-    }
+        });
+    });
 }
 
 function GetClassById(id) {
-    for (var i = 0; i < classes.length; i++) {
-        if (classes[i].id == id) return classes[i];
-    }
+    var foundClass;
+
+    classes.forEach(function (_class) {
+        if (_class.id == id) foundClass = _class;
+    });
+
+    return foundClass;
 }
 
 function GenerateAttributeOrMethods(_class, _classElement) {
@@ -155,15 +187,14 @@ function GenerateAttributeOrMethods(_class, _classElement) {
 
     if (!_class.children) return;
 
-    for (var x = 0; x < _class.children.length; x++) {
-        var methodOrAttribute = _class.children[x];
+    _class.children.forEach(function (methodOrAttribute) {
         var kind = methodOrAttribute.kindString;
         var type = kind;
+        methodOrAttribute.Id = GenerateId();
 
         if (kind == "Method") {
             var method = methodOrAttribute;
             var signature = method.signatures[0];
-            method.Id = GenerateId();
 
             var operationChildren = modelChildren.ele('Operation')
                 .att('ReturnType', GetTypeName(signature.type))
@@ -193,7 +224,7 @@ function GenerateAttributeOrMethods(_class, _classElement) {
             // don't create attributes for references which have an id, an association will be drawn later
             // classes that are not in the typedoc don't have an id
             if (attr.type && attr.type.type == "reference") {
-                if (attr.type.id) continue;
+                if (attr.type.id) return;
             }
 
             modelChildren.ele('Attribute')
@@ -201,7 +232,7 @@ function GenerateAttributeOrMethods(_class, _classElement) {
             .att('Name', attr.name)
             .att('Type', GetTypeName(attr.type));
         }
-    }
+    });
 }
 
 function GenerateId() {

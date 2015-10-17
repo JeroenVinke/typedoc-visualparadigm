@@ -45,6 +45,26 @@
         <Association Idref="zHPUTgqGAqBwAQPX"/>
       </MasterView>
     </Association>
+
+    <Association EndRelationshipFromMetaModelElement="wSLUTgqGAqBwAQOR" EndRelationshipToMetaModelElement="EonUTgqGAqBwAQOx" Id="QHPUTgqGAqBwAQPQ">
+      <FromEnd>
+        <AssociationEnd EndModelElement="wSLUTgqGAqBwAQOR" Id="XHPUTgqGAqBwAQPS">
+          <Type>
+            <Class Idref="wSLUTgqGAqBwAQOR" Name="A"/>
+          </Type>
+        </AssociationEnd>
+      </FromEnd>
+      <ToEnd>
+        <AssociationEnd EndModelElement="EonUTgqGAqBwAQOx" Id="VHPUTgqGAqBwAQPV">
+          <Type>
+            <Class Idref="EonUTgqGAqBwAQOx" Name="B"/>
+          </Type>
+        </AssociationEnd>
+      </ToEnd>
+      <MasterView>
+        <Association Idref="QHPUTgqGAqBwAQPX"/>
+      </MasterView>
+    </Association>
   </Models>
   <Diagrams>
     <ClassDiagram>
@@ -56,6 +76,8 @@
       </Shapes>
       <Connectors>
         <Association From="3iLUTgqGAqBwAQOQ" To="EonUTgqGAqBwAQOw" Id="zHPUTgqGAqBwAQPX" Element="eHPUTgqGAqBwAQPQ" Model="eHPUTgqGAqBwAQPQ">
+        </Association>
+        <Association From="3iLUTgqGAqBwAQOQ" To="EonUTgqGAqBwAQOw" Id="QHPUTgqGAqBwAQPX" Element="QHPUTgqGAqBwAQPX" Model="QHPUTgqGAqBwAQPX">
         </Association>
       </Connectors>
     </ClassDiagram>
