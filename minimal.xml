@@ -7,6 +7,12 @@
     <Class Id="wSLUTgqGAqBwAQOR" Name="A">
       <ModelChildren>
         <Attribute Id="VSbUTgqGAqBwAQOc" Name="name" Type="string"/>
+        <Operation Id="z79ergqGAqBwAWh3" Name="a" Visibility="public">
+          <ModelChildren>
+            <Parameter Id="50TergqGAqBwAWh7" Name="x" Type="integer"/>
+            <Parameter Id="t0TergqGAqBwAWh8" Name="f" Type="number"/>
+          </ModelChildren>
+        </Operation>
       </ModelChildren>
       <MasterView>
         <Class Idref="3iLUTgqGAqBwAQOQ" Name="A"/>
@@ -23,9 +29,6 @@
     <Association EndRelationshipFromMetaModelElement="wSLUTgqGAqBwAQOR" EndRelationshipToMetaModelElement="EonUTgqGAqBwAQOx" Id="eHPUTgqGAqBwAQPQ">
       <FromEnd>
         <AssociationEnd EndModelElement="wSLUTgqGAqBwAQOR" Id="ZHPUTgqGAqBwAQPS">
-          <Qualifier>
-            <Qualifier Id="5HPUTgqGAqBwAQPU"/>
-          </Qualifier>
           <Type>
             <Class Idref="wSLUTgqGAqBwAQOR" Name="A"/>
           </Type>
@@ -33,9 +36,6 @@
       </FromEnd>
       <ToEnd>
         <AssociationEnd EndModelElement="EonUTgqGAqBwAQOx" Id="FHPUTgqGAqBwAQPV">
-          <Qualifier>
-            <Qualifier Id="FHPUTgqGAqBwAQPW"/>
-          </Qualifier>
           <Type>
             <Class Idref="EonUTgqGAqBwAQOx" Name="B"/>
           </Type>
@@ -49,13 +49,13 @@
   <Diagrams>
     <ClassDiagram>
       <Shapes>
-        <Class Background="rgb(122, 207, 245)" Height="155" Width="80" Id="3iLUTgqGAqBwAQOQ" MetaModelElement="wSLUTgqGAqBwAQOR" Model="wSLUTgqGAqBwAQOR" Name="A">
+        <Class Id="3iLUTgqGAqBwAQOQ" MetaModelElement="wSLUTgqGAqBwAQOR" Model="wSLUTgqGAqBwAQOR" Name="A">
         </Class>
-        <Class Background="rgb(122, 207, 245)" Height="155" Width="80" Id="EonUTgqGAqBwAQOw" MetaModelElement="EonUTgqGAqBwAQOx" Model="EonUTgqGAqBwAQOx" Name="B">
+        <Class Id="EonUTgqGAqBwAQOw" MetaModelElement="EonUTgqGAqBwAQOx" Model="EonUTgqGAqBwAQOx" Name="B">
         </Class>
       </Shapes>
       <Connectors>
-        <Association From="3iLUTgqGAqBwAQOQ" Id="zHPUTgqGAqBwAQPX" Element="eHPUTgqGAqBwAQPQ" Model="eHPUTgqGAqBwAQPQ" To="EonUTgqGAqBwAQOw">
+        <Association From="3iLUTgqGAqBwAQOQ" To="EonUTgqGAqBwAQOw" Id="zHPUTgqGAqBwAQPX" Element="eHPUTgqGAqBwAQPQ" Model="eHPUTgqGAqBwAQPQ">
         </Association>
       </Connectors>
     </ClassDiagram>
